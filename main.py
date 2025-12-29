@@ -4,10 +4,10 @@ from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import Response
 
-from app.api.v1.routes.auth import router as auth_router
-from app.api.v1.routes.forward import router as forward_router
-from app.api.v1.routes.history import router as history_router
-from app.api.v1.routes.stats import router as stats_router
+from app.api.routes.auth import router as auth_router
+from app.api.routes.forward import router as forward_router
+from app.api.routes.history import router as history_router
+from app.api.routes.stats import router as stats_router
 from app.db.session import init_db
 
 
