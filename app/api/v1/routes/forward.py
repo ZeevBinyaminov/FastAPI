@@ -80,8 +80,7 @@ async def forward(
 
     response_status = "success"
     response_data = None
-    text_length = len(data.text) if data.text else None
-    token_count = len(data.text.split()) if data.text else None
+    bytecode_length = len(data.bytecode) if data.bytecode else None
 
     if not model_success:
         response_status = "error"
@@ -94,8 +93,7 @@ async def forward(
                 response_status=response_status,
                 response_data=response_data,
                 processing_time_ms=processing_time_ms,
-                input_text_length=text_length,
-                input_token_count=token_count,
+                bytecode_length=bytecode_length,
             )
             db.add(history_record)
             await db.commit()
@@ -148,8 +146,7 @@ async def forward(
             response_status=response_status,
             response_data=response_data,
             processing_time_ms=processing_time_ms,
-            input_text_length=text_length,
-            input_token_count=token_count,
+            bytecode_length=bytecode_length,
         )
         db.add(history_record)
         await db.commit()

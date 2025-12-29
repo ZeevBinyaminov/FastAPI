@@ -13,8 +13,7 @@ class HistoryResponse(BaseModel):
     response_status: Optional[str] = None
     response_data: Optional[Dict[str, Any]] = None
     processing_time_ms: Optional[int] = None
-    input_text_length: Optional[int] = None
-    input_token_count: Optional[int] = None
+    bytecode_length: Optional[int] = None
     timestamp: datetime
 
     model_config = ConfigDict(from_attributes=True)

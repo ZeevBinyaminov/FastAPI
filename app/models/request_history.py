@@ -17,6 +17,5 @@ class RequestHistory(Base):
     response_status: Mapped[Optional[str]]
     response_data: Mapped[Optional[dict[str, Any]]]
     processing_time_ms: Mapped[Optional[int]]
-    input_text_length: Mapped[Optional[int]]
-    input_token_count: Mapped[Optional[int]]
+    bytecode_length: Mapped[Optional[int]]
     timestamp: Mapped[datetime] = mapped_column(default=datetime.utcnow, nullable=False)

@@ -27,8 +27,7 @@ def upgrade() -> None:
         sa.Column("response_status", sa.String(), nullable=True),
         sa.Column("response_data", sa.JSON(), nullable=True),
         sa.Column("processing_time_ms", sa.Integer(), nullable=True),
-        sa.Column("input_text_length", sa.Integer(), nullable=True),
-        sa.Column("input_token_count", sa.Integer(), nullable=True),
+        sa.Column("bytecode_length", sa.Integer(), nullable=True),
         sa.Column("timestamp", sa.DateTime(), nullable=False),
     )
     op.create_index("ix_request_history_id", "request_history", ["id"], unique=False)

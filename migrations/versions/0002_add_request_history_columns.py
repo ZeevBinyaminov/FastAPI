@@ -25,8 +25,7 @@ def upgrade() -> None:
             ADD COLUMN IF NOT EXISTS response_status VARCHAR,
             ADD COLUMN IF NOT EXISTS response_data JSON,
             ADD COLUMN IF NOT EXISTS processing_time_ms INTEGER,
-            ADD COLUMN IF NOT EXISTS input_text_length INTEGER,
-            ADD COLUMN IF NOT EXISTS input_token_count INTEGER,
+            ADD COLUMN IF NOT EXISTS bytecode_length INTEGER,
             ADD COLUMN IF NOT EXISTS timestamp TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW();
         """
     )
@@ -41,8 +40,7 @@ def downgrade() -> None:
         """
         ALTER TABLE request_history
             DROP COLUMN IF EXISTS timestamp,
-            DROP COLUMN IF EXISTS input_token_count,
-            DROP COLUMN IF EXISTS input_text_length,
+            DROP COLUMN IF EXISTS bytecode_length,
             DROP COLUMN IF EXISTS processing_time_ms,
             DROP COLUMN IF EXISTS response_data,
             DROP COLUMN IF EXISTS response_status,

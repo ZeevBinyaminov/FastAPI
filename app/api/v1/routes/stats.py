@@ -20,20 +20,17 @@ async def get_stats(
         result = await db.execute(
             select(
                 RequestHistory.processing_time_ms,
-                RequestHistory.input_text_length,
-                RequestHistory.input_token_count,
+                RequestHistory.bytecode_length,
             )
         )
         rows = result.all()
 
         processing_times = [row[0] for row in rows if row[0] is not None]
-        text_lengths = [row[1] for row in rows if row[1] is not None]
-        token_counts = [row[2] for row in rows if row[2] is not None]
+        bytecode_lengths = [row[1] for row in rows if row[1] is not None]
 
         stats = build_stats(
             processing_times,
-            text_lengths,
-            token_counts,
+            bytecode_lengths,
         )
 
         return {
