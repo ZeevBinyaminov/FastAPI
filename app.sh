@@ -45,4 +45,4 @@ if [ -f "requirements.txt" ]; then
     pip install -r requirements.txt
 fi
 
-uvicorn main:app --reload
+uvicorn main:app --reload --port 8000

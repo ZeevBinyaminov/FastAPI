@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy import delete, select
@@ -37,7 +37,7 @@ async def get_history(
 async def delete_history(
     db: AsyncSession = Depends(get_db),
     _user: dict = Depends(require_admin),
-    confirm_token: str | None = Header(None, alias="X-Confirm-Token"),
+    confirm_token: Optional[str] = Header(None, alias="X-Confirm-Token"),
 ) -> dict:
     """Delete all history entries (admin only)."""
     try:
