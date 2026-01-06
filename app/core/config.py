@@ -12,7 +12,7 @@ class Settings:
         self.postgres_user = os.getenv("POSTGRES_USER", "postgres")
         self.postgres_password = os.getenv("POSTGRES_PASSWORD", "postgres")
         self.postgres_host = os.getenv("POSTGRES_HOST", "localhost")
-        self.postgres_port = os.getenv("POSTGRES_PORT", "15432")
+        self.postgres_port = os.getenv("POSTGRES_PORT", "5432")
         self.postgres_db = os.getenv("POSTGRES_DB", "postgres")
 
         self.database_url = (
