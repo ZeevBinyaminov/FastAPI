@@ -1,5 +1,6 @@
 from typing import AsyncGenerator
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.config import settings
@@ -20,13 +21,10 @@ AsyncSessionLocal = async_sessionmaker[AsyncSession](
 
 async def init_db() -> None:
     """Initialize database tables."""
-    try:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-        print("Database initialized successfully")
-    except Exception as exc:
-        print(f"Warning: Could not initialize database: {exc}")
-        print("Application will continue, but database features may not work")
+    async with engine.begin() as conn:
+        await conn.execute(text("SELECT 1"))
+        await conn.run_sync(Base.metadata.create_all)
+    print("Database initialized successfully")
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:

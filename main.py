@@ -14,11 +14,7 @@ from app.db.session import init_db
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize database on startup."""
-    try:
-        await init_db()
-    except Exception as exc:
-        print(f"Warning: Database initialization failed: {exc}")
-        print("Application will continue, but database features may not work")
+    await init_db()
     yield
 
 
