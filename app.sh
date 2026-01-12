@@ -2,9 +2,14 @@
 set -euo pipefail
 
 if [ -f ".env" ]; then
-    set -a
-    source .env
-    set +a
+    while IFS='=' read -r key value; do
+        case "$key" in
+            ""|\#*) continue ;;
+        esac
+        if [ -z "${!key+x}" ]; then
+            export "$key=$value"
+        fi
+    done < .env
 fi
 
 APP_HOST="${APP_HOST:-127.0.0.1}"
