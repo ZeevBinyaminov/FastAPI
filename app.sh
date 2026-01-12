@@ -49,10 +49,22 @@ if [ "$STOP_DB_ON_EXIT" = "1" ]; then
     trap stop_db EXIT INT TERM
 fi
 
+get_mapped_port() {
+    docker inspect -f '{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostPort}}' "$POSTGRES_CONTAINER" 2>/dev/null || true
+}
+
 if docker ps -a --filter "name=^/${POSTGRES_CONTAINER}$" --format '{{.Names}}' | grep -xq "$POSTGRES_CONTAINER"; then
-    echo "PostgreSQL container exists, starting it..."
-    docker start "$POSTGRES_CONTAINER" >/dev/null
-else
+    EXISTING_PORT="$(get_mapped_port)"
+    if [ -n "$EXISTING_PORT" ] && [ "$EXISTING_PORT" != "$POSTGRES_PORT" ]; then
+        echo "PostgreSQL container port mismatch (have ${EXISTING_PORT}, want ${POSTGRES_PORT}). Recreating..."
+        docker rm -f "$POSTGRES_CONTAINER" >/dev/null
+    else
+        echo "PostgreSQL container exists, starting it..."
+        docker start "$POSTGRES_CONTAINER" >/dev/null
+    fi
+fi
+
+if ! docker ps -a --filter "name=^/${POSTGRES_CONTAINER}$" --format '{{.Names}}' | grep -xq "$POSTGRES_CONTAINER"; then
     echo "Creating PostgreSQL container..."
     docker volume create "$POSTGRES_VOLUME" >/dev/null
     docker run -d \
