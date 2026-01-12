@@ -11,6 +11,9 @@ APP_HOST="${APP_HOST:-127.0.0.1}"
 APP_PORT="${APP_PORT:-8000}"
 NGINX_SERVER_NAME="${NGINX_SERVER_NAME:-_}"
 NGINX_SETUP="${NGINX_SETUP:-1}"
+STOP_DB_ON_EXIT="${STOP_DB_ON_EXIT:-1}"
+INSTALL_REQUIREMENTS="${INSTALL_REQUIREMENTS:-1}"
+RUN_MIGRATIONS="${RUN_MIGRATIONS:-0}"
 
 POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-fastapi-postgres}"
 POSTGRES_USER="${POSTGRES_USER:-postgres}"
@@ -24,20 +27,24 @@ if ! command -v docker >/dev/null 2>&1; then
     exit 1
 fi
 
-if ! command -v nginx >/dev/null 2>&1; then
-    echo "Nginx is required but not installed."
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "Python 3 is required but not installed."
     exit 1
 fi
 
 stop_db() {
-    if docker container ls | grep -q "$POSTGRES_CONTAINER"; then
-        docker stop "$POSTGRES_CONTAINER" >/dev/null
+    if [ "$STOP_DB_ON_EXIT" = "1" ]; then
+        if docker ps --filter "name=^/${POSTGRES_CONTAINER}$" --format '{{.Names}}' | grep -xq "$POSTGRES_CONTAINER"; then
+            docker stop "$POSTGRES_CONTAINER" >/dev/null
+        fi
     fi
 }
 
-trap stop_db EXIT INT TERM
+if [ "$STOP_DB_ON_EXIT" = "1" ]; then
+    trap stop_db EXIT INT TERM
+fi
 
-if docker container ls -a | grep -q "$POSTGRES_CONTAINER"; then
+if docker ps -a --filter "name=^/${POSTGRES_CONTAINER}$" --format '{{.Names}}' | grep -xq "$POSTGRES_CONTAINER"; then
     echo "PostgreSQL container exists, starting it..."
     docker start "$POSTGRES_CONTAINER" >/dev/null
 else
@@ -54,9 +61,14 @@ else
 fi
 
 echo "Waiting for PostgreSQL to start..."
-sleep 3
+for attempt in {1..30}; do
+    if docker exec "$POSTGRES_CONTAINER" pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" >/dev/null 2>&1; then
+        break
+    fi
+    sleep 1
+done
 
-if docker container ls | grep -q "$POSTGRES_CONTAINER"; then
+if docker exec "$POSTGRES_CONTAINER" pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" >/dev/null 2>&1; then
     echo "✅ PostgreSQL is running on port ${POSTGRES_PORT}"
     echo "Connection string: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT}/${POSTGRES_DB}"
 else
@@ -68,6 +80,11 @@ NGINX_CONF_PATH="/etc/nginx/sites-available/fastapi"
 NGINX_LINK_PATH="/etc/nginx/sites-enabled/fastapi"
 
 if [ "$NGINX_SETUP" = "1" ]; then
+    if ! command -v nginx >/dev/null 2>&1; then
+        echo "Nginx is required but not installed."
+        exit 1
+    fi
+
 sudo tee "$NGINX_CONF_PATH" >/dev/null <<NGINX
 server {
     listen 80;
@@ -90,14 +107,21 @@ fi
 
 if [ ! -d ".venv" ]; then
     echo "Creating virtual environment..."
-    python -m venv .venv
+    python3 -m venv .venv
 fi
 
 source .venv/bin/activate
 
 if [ -f "requirements.txt" ]; then
-    echo "Installing requirements..."
-    pip install -r requirements.txt
+    if [ "$INSTALL_REQUIREMENTS" = "1" ]; then
+        echo "Installing requirements..."
+        pip install -r requirements.txt
+    fi
+fi
+
+if [ "$RUN_MIGRATIONS" = "1" ]; then
+    echo "Running database migrations..."
+    PYTHONPATH=. alembic upgrade head
 fi
 
 exec uvicorn main:app --host "$APP_HOST" --port "$APP_PORT"

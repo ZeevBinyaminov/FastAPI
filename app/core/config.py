@@ -29,3 +29,14 @@ class Settings:
 
 
 settings = Settings()
+print(settings.database_url)
+print(settings.jwt_secret_key)
+print(settings.jwt_algorithm)
+print(settings.jwt_expires_minutes)
+print(settings.admin_username)
+print(settings.admin_password)
+print(settings.postgres_user)
+print(settings.postgres_password)
+print(settings.postgres_host)
+print(settings.postgres_port)
+print(settings.postgres_db)
