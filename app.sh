@@ -21,10 +21,10 @@ INSTALL_REQUIREMENTS="${INSTALL_REQUIREMENTS:-1}"
 RUN_MIGRATIONS="${RUN_MIGRATIONS:-0}"
 
 POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-fastapi-postgres}"
-POSTGRES_USER="${POSTGRES_USER:-postgres}"
-POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-postgres}"
-POSTGRES_DB="${POSTGRES_DB:-postgres}"
-POSTGRES_PORT="${POSTGRES_PORT:-5432}"
+PG_USER="${PG_USER:-postgres}"
+PG_PASSWORD="${PG_PASSWORD:-postgres}"
+PG_DB="${PG_DB:-postgres}"
+PG_PORT="${PG_PORT:-5432}"
 POSTGRES_VOLUME="${POSTGRES_VOLUME:-fastapi-pgdata}"
 
 if ! command -v docker >/dev/null 2>&1; then
@@ -60,8 +60,8 @@ get_mapped_port() {
 
 if docker ps -a --filter "name=^/${POSTGRES_CONTAINER}$" --format '{{.Names}}' | grep -xq "$POSTGRES_CONTAINER"; then
     EXISTING_PORT="$(get_mapped_port)"
-    if [ -n "$EXISTING_PORT" ] && [ "$EXISTING_PORT" != "$POSTGRES_PORT" ]; then
-        echo "PostgreSQL container port mismatch (have ${EXISTING_PORT}, want ${POSTGRES_PORT}). Recreating..."
+    if [ -n "$EXISTING_PORT" ] && [ "$EXISTING_PORT" != "$PG_PORT" ]; then
+        echo "PostgreSQL container port mismatch (have ${EXISTING_PORT}, want ${PG_PORT}). Recreating..."
         docker rm -f "$POSTGRES_CONTAINER" >/dev/null
     else
         echo "PostgreSQL container exists, starting it..."
@@ -74,25 +74,25 @@ if ! docker ps -a --filter "name=^/${POSTGRES_CONTAINER}$" --format '{{.Names}}'
     docker volume create "$POSTGRES_VOLUME" >/dev/null
     docker run -d \
         --name "$POSTGRES_CONTAINER" \
-        -e POSTGRES_USER="$POSTGRES_USER" \
-        -e POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
-        -e POSTGRES_DB="$POSTGRES_DB" \
-        -p "$POSTGRES_PORT:5432" \
+        -e POSTGRES_USER="$PG_USER" \
+        -e POSTGRES_PASSWORD="$PG_PASSWORD" \
+        -e POSTGRES_DB="$PG_DB" \
+        -p "$PG_PORT:5432" \
         -v "$POSTGRES_VOLUME:/var/lib/postgresql/data" \
         postgres:16
 fi
 
 echo "Waiting for PostgreSQL to start..."
 for attempt in {1..30}; do
-    if docker exec "$POSTGRES_CONTAINER" pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" >/dev/null 2>&1; then
+    if docker exec "$POSTGRES_CONTAINER" pg_isready -U "$PG_USER" -d "$PG_DB" >/dev/null 2>&1; then
         break
     fi
     sleep 1
 done
 
-if docker exec "$POSTGRES_CONTAINER" pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" >/dev/null 2>&1; then
-    echo "✅ PostgreSQL is running on port ${POSTGRES_PORT}"
-    echo "Connection string: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT}/${POSTGRES_DB}"
+if docker exec "$POSTGRES_CONTAINER" pg_isready -U "$PG_USER" -d "$PG_DB" >/dev/null 2>&1; then
+    echo "✅ PostgreSQL is running on port ${PG_PORT}"
+    echo "Connection string: postgresql://${PG_USER}:${PG_PASSWORD}@localhost:${PG_PORT}/${PG_DB}"
 else
     echo "❌ Failed to start PostgreSQL"
     exit 1

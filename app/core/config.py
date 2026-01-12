@@ -9,17 +9,22 @@ class Settings:
     """Application settings loaded from environment variables."""
 
     def __init__(self) -> None:
-        self.postgres_user = os.getenv("POSTGRES_USER", "postgres")
-        self.postgres_password = os.getenv("POSTGRES_PASSWORD", "postgres")
-        self.postgres_host = os.getenv("POSTGRES_HOST", "localhost")
-        self.postgres_port = os.getenv("POSTGRES_PORT", "5432")
-        self.postgres_db = os.getenv("POSTGRES_DB", "postgres")
+        self.database_url = os.getenv("DATABASE_URL")
+        self.postgres_user = os.getenv("PG_USER", "postgres")
+        self.postgres_password = os.getenv("PG_PASSWORD", "postgres")
+        self.postgres_host = os.getenv("PG_HOST", "localhost")
+        self.postgres_port = os.getenv("PG_PORT", "5432")
+        self.postgres_db = os.getenv("PG_DB", "postgres")
+        self.postgres_ssl = os.getenv("PG_SSL", "disable")
 
-        self.database_url = (
-            "postgresql+asyncpg://"
-            f"{self.postgres_user}:{self.postgres_password}"
-            f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
-        )
+        if not self.database_url:
+            ssl_query = f"?ssl={self.postgres_ssl}" if self.postgres_ssl else ""
+            self.database_url = (
+                "postgresql+asyncpg://"
+                f"{self.postgres_user}:{self.postgres_password}"
+                f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
+                f"{ssl_query}"
+            )
 
         self.jwt_secret_key = os.getenv("JWT_SECRET_KEY", "change_me")
         self.jwt_algorithm = os.getenv("JWT_ALGORITHM", "HS256")
@@ -29,14 +34,3 @@ class Settings:
 
 
 settings = Settings()
-print(settings.database_url)
-print(settings.jwt_secret_key)
-print(settings.jwt_algorithm)
-print(settings.jwt_expires_minutes)
-print(settings.admin_username)
-print(settings.admin_password)
-print(settings.postgres_user)
-print(settings.postgres_password)
-print(settings.postgres_host)
-print(settings.postgres_port)
-print(settings.postgres_db)
