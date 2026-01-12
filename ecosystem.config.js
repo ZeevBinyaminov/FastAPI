@@ -10,7 +10,7 @@ module.exports = {
         NGINX_SETUP: "0",
         STOP_DB_ON_EXIT: "0",
         INSTALL_REQUIREMENTS: "0",
-        RUN_MIGRATIONS: "1",
+        RUN_MIGRATIONS: "0",
         PG_HOST: "localhost",
         PG_PORT: "5433",
         PG_USER: "postgres",
