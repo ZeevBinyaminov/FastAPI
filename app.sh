@@ -27,6 +27,11 @@ if ! command -v docker >/dev/null 2>&1; then
     exit 1
 fi
 
+if ! docker info >/dev/null 2>&1; then
+    echo "Docker daemon is not running."
+    exit 1
+fi
+
 if ! command -v python3 >/dev/null 2>&1; then
     echo "Python 3 is required but not installed."
     exit 1
@@ -85,7 +90,17 @@ if [ "$NGINX_SETUP" = "1" ]; then
         exit 1
     fi
 
-sudo tee "$NGINX_CONF_PATH" >/dev/null <<NGINX
+    if [ "$EUID" -ne 0 ] && ! command -v sudo >/dev/null 2>&1; then
+        echo "sudo is required to configure Nginx (run as root or install sudo)."
+        exit 1
+    fi
+
+    SUDO=""
+    if [ "$EUID" -ne 0 ]; then
+        SUDO="sudo"
+    fi
+
+$SUDO tee "$NGINX_CONF_PATH" >/dev/null <<NGINX
 server {
     listen 80;
     server_name ${NGINX_SERVER_NAME};
@@ -100,9 +115,13 @@ server {
 }
 NGINX
 
-sudo ln -sf "$NGINX_CONF_PATH" "$NGINX_LINK_PATH"
-sudo nginx -t
-sudo systemctl reload nginx
+$SUDO ln -sf "$NGINX_CONF_PATH" "$NGINX_LINK_PATH"
+$SUDO nginx -t
+if command -v systemctl >/dev/null 2>&1; then
+    $SUDO systemctl reload nginx
+else
+    $SUDO nginx -s reload
+fi
 fi
 
 if [ ! -d ".venv" ]; then
