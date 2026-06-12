@@ -26,17 +26,6 @@ class Settings:
         self.jwt_expires_minutes = int(os.getenv("JWT_EXPIRES_MINUTES", "60"))
         self.admin_username = os.getenv("ADMIN_USERNAME", "admin")
         self.admin_password = os.getenv("ADMIN_PASSWORD", "admin")
-
+        self.forward_url = "/forward"
 
 settings = Settings()
-print(settings.database_url)
-print(settings.jwt_secret_key)
-print(settings.jwt_algorithm)
-print(settings.jwt_expires_minutes)
-print(settings.admin_username)
-print(settings.admin_password)
-print(settings.postgres_user)
-print(settings.postgres_password)
-print(settings.postgres_host)
-print(settings.postgres_port)
-print(settings.postgres_db)

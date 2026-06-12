@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.db.session import get_db
 from app.models.contract import Contract, ContractMetadata
 from app.models.request_history import RequestHistory
@@ -14,7 +15,7 @@ from app.services.evm_inference import predict_with_features
 router = APIRouter()
 
 
-@router.post("/forward", tags=["forward"])
+@router.post(settings.forward_url, tags=["forward"])
 async def forward(
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -73,6 +74,9 @@ async def forward(
             detail="model file not found",
         ) from exc
     except Exception as exc:
+        import traceback
+        print(f"✗ predict_with_features error: {type(exc).__name__}: {exc}")
+        traceback.print_exc()
         model_success = False
         prediction = None
         features = None
@@ -111,20 +115,22 @@ async def forward(
             detail="модель не смогла обработать данные",
         )
 
+    is_vulnerable = bool(prediction)
     response_data = {
         "status": "success",
         "data": data.model_dump(mode="json"),
         "result": {
             "processed": True,
             "created_at": data.created_at.isoformat(),
-            "prediction": prediction,
+            "is_vulnerable": is_vulnerable,
+            "vulnerabilities": prediction,
         },
     }
 
     try:
         contract = Contract(
             bytecode=data.bytecode,
-            prediction=int(prediction),
+            prediction=prediction,
             processing_time_ms=processing_time_ms,
             created_at=data.created_at,
         )

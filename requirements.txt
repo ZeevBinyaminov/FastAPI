@@ -11,5 +11,6 @@ numpy
 scipy
 pyevmasm
 xgboost
+lightgbm
 uvicorn
 SQLAlchemy

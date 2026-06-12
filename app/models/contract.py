@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, Text
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, JSON, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -11,7 +11,7 @@ class Contract(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     bytecode: Mapped[str] = mapped_column(Text, nullable=False)
-    prediction: Mapped[int] = mapped_column(Integer, nullable=False)
+    prediction: Mapped[str] = mapped_column(JSON, nullable=False)
     processing_time_ms: Mapped[int]
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, nullable=False
